@@ -1,25 +1,3 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyBwdCCVs6Y4XN-dUpFeIDg0fDyoJj4DnAQ",
-  authDomain: "fortuneincome.firebaseapp.com",
-  projectId: "fortuneincome",
-  storageBucket: "fortuneincome.firebasestorage.app",
-  messagingSenderId: "1044747905951",
-  appId: "1:1044747905951:web:fd8976a74dc3bda555ebaa",
-  measurementId: "G-1MD2W65HBW"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -415,14 +393,199 @@ const analytics = getAnalytics(app);
     #printArea table{ page-break-inside: auto; }
     #printArea tr{ page-break-inside: avoid; }
   }
+
+  /* ---- Auth / setup screens ---- */
+  .auth-screen{
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .auth-card{
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--brown-100);
+    padding: 32px 28px;
+    width: 100%;
+    max-width: 400px;
+  }
+  .auth-card .crescent{ text-align:center; font-size:20px; opacity:.5; letter-spacing:8px; margin-bottom:4px; }
+  .auth-card h2{
+    font-family:'Mitr', sans-serif;
+    font-size: 19px;
+    color: var(--brown-900);
+    text-align: center;
+    margin: 0 0 6px;
+  }
+  .auth-card p.hint{
+    font-size: 12.5px;
+    color: var(--brown-500);
+    text-align: center;
+    margin: 0 0 20px;
+    line-height: 1.6;
+  }
+  .auth-field{ margin-bottom: 12px; }
+  .auth-field label{
+    display:block;
+    font-size: 12.5px;
+    color: var(--brown-700);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .auth-field input, .auth-field textarea{
+    width: 100%;
+    border: 1.5px solid var(--brown-300);
+    border-radius: var(--radius-sm);
+    padding: 9px 12px;
+    font-size: 13.5px;
+    font-family: 'Noto Sans Thai';
+    background: #fff;
+    color: var(--brown-900);
+  }
+  .auth-field textarea{ min-height: 90px; resize: vertical; font-family: monospace; font-size: 12px; }
+  .auth-field input:focus, .auth-field textarea:focus{
+    outline:none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft);
+  }
+  .auth-btn{
+    width: 100%;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    padding: 11px;
+    border-radius: 999px;
+    font-family: 'Noto Sans Thai';
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 6px;
+    transition: background .15s ease;
+  }
+  .auth-btn:hover{ background: var(--accent-dark); }
+  .auth-btn.secondary{
+    background: transparent;
+    color: var(--accent-dark);
+    border: 1.5px solid var(--brown-300);
+  }
+  .auth-btn.secondary:hover{ background: var(--brown-100); }
+  .auth-toggle{
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--brown-500);
+    margin-top: 14px;
+  }
+  .auth-toggle a{ color: var(--accent-dark); cursor: pointer; text-decoration: underline; }
+  .auth-error{
+    background: #FBEAEA;
+    color: #A44;
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 12.5px;
+    margin-bottom: 12px;
+    display: none;
+  }
+  .auth-divider{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 18px 0;
+    color: var(--brown-300);
+    font-size: 11px;
+  }
+  .auth-divider::before, .auth-divider::after{ content:""; flex:1; height:1px; background: var(--brown-200); }
+
+  /* account bar */
+  .account-bar{
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 14px 24px 0;
+    display:flex;
+    align-items:center;
+    justify-content: flex-end;
+    gap: 14px;
+    font-size: 12.5px;
+    color: var(--brown-500);
+  }
+  .sync-status{ display:flex; align-items:center; gap:5px; }
+  .sync-dot{ width:7px; height:7px; border-radius:50%; background:#9C7350; display:inline-block; }
+  .sync-status.synced .sync-dot{ background:#7C9070; }
+  .sync-status.saving .sync-dot{ background: var(--bonus); }
+  .sync-status.error .sync-dot{ background:#B14A4A; }
+  .account-bar button{
+    border:none; background:transparent; color: var(--accent-dark);
+    font-size:12.5px; text-decoration: underline; cursor:pointer; padding:0;
+  }
 </style>
 </head>
 <body>
 
+<!-- ===== STEP 1: Firebase project setup (one-time, per browser) ===== -->
+<div class="auth-screen" id="authScreen">
+
+  <div class="auth-card" id="setupCard" style="display:none">
+    <div class="crescent">☾ ⋆ ✧ ⋆ ☽</div>
+    <h2>เชื่อมต่อ Firebase 🔮</h2>
+    <p class="hint">
+      วางค่า Firebase config ของโปรเจกต์คุณที่นี่ (ดูได้จาก Firebase Console → Project settings → SDK setup and configuration)<br>
+      ต้องทำแค่ครั้งเดียวต่อเบราว์เซอร์/อุปกรณ์
+    </p>
+    <div class="auth-error" id="setupError"></div>
+    <div class="auth-field">
+      <label>วาง firebaseConfig ทั้งก้อน (นำมาจาก Firebase Console)</label>
+      <textarea id="configPaste" placeholder='{
+  "apiKey": "...",
+  "authDomain": "...",
+  "projectId": "...",
+  "storageBucket": "...",
+  "messagingSenderId": "...",
+  "appId": "..."
+}'></textarea>
+    </div>
+    <button class="auth-btn" id="saveConfigBtn">บันทึกและเชื่อมต่อ</button>
+  </div>
+
+  <div class="auth-card" id="loginCard" style="display:none">
+    <div class="crescent">☾ ⋆ ✧ ⋆ ☽</div>
+    <h2 id="loginTitle">เข้าสู่ระบบ 🔮</h2>
+    <p class="hint">ใช้อีเมล/รหัสผ่านเดียวกันในทุกอุปกรณ์ เพื่อดูข้อมูลชุดเดียวกัน</p>
+    <div class="auth-error" id="loginError"></div>
+    <div class="auth-field">
+      <label>อีเมล</label>
+      <input type="email" id="loginEmail" autocomplete="username" placeholder="you@example.com">
+    </div>
+    <div class="auth-field">
+      <label>รหัสผ่าน</label>
+      <input type="password" id="loginPassword" autocomplete="current-password" placeholder="อย่างน้อย 6 ตัวอักษร">
+    </div>
+    <button class="auth-btn" id="loginBtn">เข้าสู่ระบบ</button>
+    <button class="auth-btn secondary" id="signupBtn">สมัครสมาชิกใหม่</button>
+    <div class="auth-toggle"><a id="forgotPasswordLink">ลืมรหัสผ่าน?</a></div>
+    <div class="auth-divider">อื่นๆ</div>
+    <div class="auth-toggle"><a id="editConfigLink">แก้ไขการตั้งค่า Firebase</a></div>
+  </div>
+
+  <div class="auth-card" id="loadingCard">
+    <div class="crescent">☾ ⋆ ✧ ⋆ ☽</div>
+    <h2>กำลังเชื่อมต่อ...</h2>
+    <p class="hint" id="loadingText">กำลังโหลดสมุดบันทึกของคุณ</p>
+  </div>
+
+</div>
+
+<!-- ===== Main app (shown only after login) ===== -->
+<div id="appScreen" style="display:none">
+
+<div class="account-bar">
+  <div class="sync-status" id="syncStatus"><span class="sync-dot"></span><span id="syncStatusText">ซิงค์แล้ว</span></div>
+  <span id="accountEmail"></span>
+  <button id="logoutBtn">ออกจากระบบ</button>
+</div>
+
 <header>
   <div class="crescent">☾ ⋆ ✧ ⋆ ☽</div>
   <h1>สมุดบันทึกรายได้ดูดวง 🔮</h1>
-  <p class="sub">บันทึกส่วนตัว · เก็บข้อมูลไว้ในเบราว์เซอร์นี้เท่านั้น</p>
+  <p class="sub">บันทึกส่วนตัว · ซิงค์ข้อมูลผ่าน Firebase ดูได้ทุกอุปกรณ์</p>
 
   <div class="month-nav">
     <button class="nav-btn" id="prevBtn" aria-label="เดือนก่อนหน้า">‹</button>
@@ -477,15 +640,27 @@ const analytics = getAnalytics(app);
   <p>
     ปกติ 1 ครั้ง = 10 ฿ · ด่วน 1 ครั้ง = 20 ฿ · ร้อนใจ 1 ครั้ง = 40 ฿ · ทุกๆ 100 ครั้งของช่อง "ปกติ" ในวันนั้น จะได้โบนัสอัตโนมัติ +100 ฿ (เช่น 200 ครั้ง = โบนัส 200 ฿)<br>
     ยอดรายสัปดาห์ (อา.–ส.) จะถูกหักภาษี ณ ที่จ่าย 3% โดยอัตโนมัติ ก่อนรวมเป็นยอดสุทธิรายเดือน<br>
-    ข้อมูลทั้งหมดถูกบันทึกไว้ใน localStorage ของเบราว์เซอร์นี้เท่านั้น กรุณากด "ส่งออกข้อมูล" เป็นประจำเพื่อสำรองไฟล์ไว้กันข้อมูลหาย
+    ข้อมูลของคุณซิงค์กับ Firebase อัตโนมัติ เข้าสู่ระบบด้วยบัญชีเดียวกันจากอุปกรณ์ไหนก็เห็นข้อมูลเดียวกัน · กด "ส่งออกข้อมูล" เป็นระยะเพื่อสำรองไฟล์เก็บไว้เพิ่มเติม
   </p>
 </footer>
 
-<script>
+</div><!-- /#appScreen -->
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, signInWithEmailAndPassword,
+  createUserWithEmailAndPassword, signOut, sendPasswordResetEmail
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import {
+  getFirestore, doc, setDoc, onSnapshot, serverTimestamp,
+  enableIndexedDbPersistence
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
 (function(){
   "use strict";
 
-  var STORAGE_KEY = "duangDiaryData_v1";
+  var CONFIG_KEY = "duangDiaryFirebaseConfig_v1";
   var START_YEAR = 2026, START_MONTH = 7; // August 2026 (0-indexed)
 
   var RATE = { n: 10, u: 20, h: 40 };
@@ -496,7 +671,7 @@ const analytics = getAnalytics(app);
   var THAI_MONTHS = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน",
     "กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
 
-  var data = loadData();
+  var data = {};
   var now = new Date();
   var view = { year: START_YEAR, month: START_MONTH };
 
@@ -506,16 +681,192 @@ const analytics = getAnalytics(app);
     view.month = now.getMonth();
   }
 
-  function loadData(){
+  // ===================== Firebase: config, auth, sync =====================
+  var fbApp = null, fbAuth = null, fbDb = null, currentUid = null, docRef = null;
+  var saveTimer = null;
+  var appliedRemoteOnce = false;
+
+  var el = {
+    authScreen: document.getElementById("authScreen"),
+    setupCard: document.getElementById("setupCard"),
+    loginCard: document.getElementById("loginCard"),
+    loadingCard: document.getElementById("loadingCard"),
+    loadingText: document.getElementById("loadingText"),
+    appScreen: document.getElementById("appScreen"),
+    configPaste: document.getElementById("configPaste"),
+    setupError: document.getElementById("setupError"),
+    saveConfigBtn: document.getElementById("saveConfigBtn"),
+    loginEmail: document.getElementById("loginEmail"),
+    loginPassword: document.getElementById("loginPassword"),
+    loginError: document.getElementById("loginError"),
+    loginBtn: document.getElementById("loginBtn"),
+    signupBtn: document.getElementById("signupBtn"),
+    forgotPasswordLink: document.getElementById("forgotPasswordLink"),
+    editConfigLink: document.getElementById("editConfigLink"),
+    accountEmail: document.getElementById("accountEmail"),
+    logoutBtn: document.getElementById("logoutBtn"),
+    syncStatus: document.getElementById("syncStatus"),
+    syncStatusText: document.getElementById("syncStatusText")
+  };
+
+  function showCard(name){
+    el.setupCard.style.display = name === "setup" ? "block" : "none";
+    el.loginCard.style.display = name === "login" ? "block" : "none";
+    el.loadingCard.style.display = name === "loading" ? "block" : "none";
+  }
+
+  function loadFirebaseConfig(){
     try{
-      var raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : {};
-    }catch(e){ return {}; }
+      var raw = localStorage.getItem(CONFIG_KEY);
+      return raw ? JSON.parse(raw) : null;
+    }catch(e){ return null; }
+  }
+  function saveFirebaseConfig(cfg){ localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg)); }
+
+  function setSyncStatus(state, text){
+    el.syncStatus.className = "sync-status " + state;
+    el.syncStatusText.textContent = text;
+  }
+
+  function parseConfigInput(raw){
+    var txt = raw.trim();
+    // allow pasting "const firebaseConfig = {...};" straight from the console
+    var match = txt.match(/\{[\s\S]*\}/);
+    if (match) txt = match[0];
+    // make it valid JSON-ish (quote bare keys), then let Function parse it safely as an object literal
+    var obj = Function('"use strict"; return (' + txt + ');')();
+    if (!obj || !obj.apiKey || !obj.projectId) throw new Error("missing fields");
+    return obj;
+  }
+
+  function initFirebase(cfg){
+    fbApp = initializeApp(cfg);
+    fbAuth = getAuth(fbApp);
+    fbDb = getFirestore(fbApp);
+    try{ enableIndexedDbPersistence(fbDb); }catch(e){ /* multiple tabs open, offline cache still works read-only */ }
+
+    onAuthStateChanged(fbAuth, function(user){
+      if (user){
+        currentUid = user.uid;
+        el.accountEmail.textContent = user.email || "";
+        docRef = doc(fbDb, "users", currentUid, "diary", "data");
+        attachListener();
+        el.authScreen.style.display = "none";
+        el.appScreen.style.display = "block";
+      } else {
+        currentUid = null;
+        docRef = null;
+        appliedRemoteOnce = false;
+        el.appScreen.style.display = "none";
+        el.authScreen.style.display = "flex";
+        showCard("login");
+      }
+    });
+  }
+
+  function attachListener(){
+    setSyncStatus("saving", "กำลังโหลดข้อมูล...");
+    onSnapshot(docRef, function(snap){
+      var hasPending = snap.metadata.hasPendingWrites;
+      var remote = (snap.exists() && snap.data().entries) ? snap.data().entries : {};
+      if (!hasPending){
+        data = remote;
+        appliedRemoteOnce = true;
+        render();
+        setSyncStatus("synced", "ซิงค์แล้ว");
+      }
+    }, function(err){
+      setSyncStatus("error", "เชื่อมต่อไม่ได้");
+      console.error(err);
+    });
   }
 
   function saveData(){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    if (!docRef) return;
+    setSyncStatus("saving", "กำลังบันทึก...");
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function(){
+      setDoc(docRef, { entries: data, updatedAt: serverTimestamp() })
+        .then(function(){ setSyncStatus("synced", "ซิงค์แล้ว"); })
+        .catch(function(err){ setSyncStatus("error", "บันทึกไม่สำเร็จ"); console.error(err); });
+    }, 500);
   }
+
+  function friendlyAuthError(code){
+    var map = {
+      "auth/invalid-email": "อีเมลไม่ถูกต้อง",
+      "auth/user-not-found": "ไม่พบบัญชีนี้ ลองสมัครสมาชิกใหม่",
+      "auth/wrong-password": "รหัสผ่านไม่ถูกต้อง",
+      "auth/invalid-credential": "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
+      "auth/email-already-in-use": "อีเมลนี้สมัครไว้แล้ว ลองเข้าสู่ระบบแทน",
+      "auth/weak-password": "รหัสผ่านสั้นเกินไป (อย่างน้อย 6 ตัวอักษร)"
+    };
+    return map[code] || ("เกิดข้อผิดพลาด: " + code);
+  }
+
+  el.saveConfigBtn.addEventListener("click", function(){
+    el.setupError.style.display = "none";
+    try{
+      var cfg = parseConfigInput(el.configPaste.value);
+      saveFirebaseConfig(cfg);
+      showCard("loading");
+      initFirebase(cfg);
+    }catch(e){
+      el.setupError.textContent = "อ่านค่า config ไม่ได้ กรุณาตรวจสอบว่าวางถูกต้องครบถ้วน";
+      el.setupError.style.display = "block";
+    }
+  });
+
+  el.editConfigLink.addEventListener("click", function(){
+    var cfg = loadFirebaseConfig();
+    if (cfg) el.configPaste.value = JSON.stringify(cfg, null, 2);
+    showCard("setup");
+  });
+
+  el.loginBtn.addEventListener("click", function(){
+    el.loginError.style.display = "none";
+    signInWithEmailAndPassword(fbAuth, el.loginEmail.value.trim(), el.loginPassword.value)
+      .catch(function(err){
+        el.loginError.textContent = friendlyAuthError(err.code);
+        el.loginError.style.display = "block";
+      });
+  });
+
+  el.signupBtn.addEventListener("click", function(){
+    el.loginError.style.display = "none";
+    createUserWithEmailAndPassword(fbAuth, el.loginEmail.value.trim(), el.loginPassword.value)
+      .catch(function(err){
+        el.loginError.textContent = friendlyAuthError(err.code);
+        el.loginError.style.display = "block";
+      });
+  });
+
+  el.forgotPasswordLink.addEventListener("click", function(){
+    var email = el.loginEmail.value.trim();
+    if (!email){ el.loginError.textContent = "กรอกอีเมลก่อน แล้วกด \"ลืมรหัสผ่าน\" อีกครั้ง"; el.loginError.style.display = "block"; return; }
+    sendPasswordResetEmail(fbAuth, email)
+      .then(function(){ el.loginError.style.display = "none"; alert("ส่งอีเมลรีเซ็ตรหัสผ่านแล้ว กรุณาตรวจสอบกล่องจดหมาย"); })
+      .catch(function(err){ el.loginError.textContent = friendlyAuthError(err.code); el.loginError.style.display = "block"; });
+  });
+
+  el.logoutBtn.addEventListener("click", function(){
+    signOut(fbAuth);
+  });
+
+  // Boot: do we already have a saved Firebase config?
+  (function boot(){
+    var cfg = loadFirebaseConfig();
+    if (cfg){
+      showCard("loading");
+      try{
+        initFirebase(cfg);
+      }catch(e){
+        showCard("setup");
+      }
+    } else {
+      showCard("setup");
+    }
+  })();
 
   function pad2(x){ return x < 10 ? "0"+x : ""+x; }
 
@@ -882,7 +1233,6 @@ const analytics = getAnalytics(app);
     }
   });
 
-  render();
 })();
 </script>
 
