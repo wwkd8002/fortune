@@ -328,6 +328,71 @@
     main{ padding: 0 16px; }
     .month-label{ min-width: 150px; font-size: 17px; }
   }
+
+  /* ---- PDF / print view ---- */
+  #printArea{ display: none; }
+
+  body.printing-pdf > *:not(#printArea){ display: none !important; }
+  body.printing-pdf #printArea{ display: block; }
+  body.printing-pdf{ background: #fff; }
+
+  #printArea h1{
+    font-family: 'Mitr', sans-serif;
+    font-size: 20px;
+    color: var(--brown-900);
+    margin: 0 0 2px;
+  }
+  #printArea .print-sub{
+    font-size: 12px;
+    color: var(--brown-500);
+    margin-bottom: 18px;
+  }
+  #printArea table{
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 22px;
+    font-size: 12.5px;
+  }
+  #printArea th, #printArea td{
+    border: 1px solid var(--brown-300);
+    padding: 6px 8px;
+    text-align: right;
+  }
+  #printArea th{
+    background: var(--brown-100);
+    color: var(--brown-800);
+    text-align: center;
+  }
+  #printArea td:first-child, #printArea th:first-child{ text-align: left; }
+  #printArea .print-note{ color: var(--bonus); font-size: 11px; }
+  #printArea h2{
+    font-family:'Mitr', sans-serif;
+    font-size: 15px;
+    color: var(--brown-800);
+    margin: 22px 0 8px;
+  }
+  #printArea .print-summary{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 24px;
+    background: var(--brown-100);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 13px;
+  }
+  #printArea .print-summary b{ color: var(--brown-900); }
+  #printArea .print-footer{
+    margin-top: 26px;
+    font-size: 10.5px;
+    color: var(--brown-500);
+  }
+
+  @media print{
+    @page{ margin: 14mm; }
+    body{ background: #fff; }
+    #printArea table{ page-break-inside: auto; }
+    #printArea tr{ page-break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
@@ -367,6 +432,7 @@
   </div>
 
   <div class="toolbar">
+    <button class="btn" id="pdfBtn">📄 ดาวน์โหลด PDF</button>
     <button class="btn" id="exportBtn">⬇ ส่งออกข้อมูล (JSON)</button>
     <button class="btn" id="importBtn">⬆ นำเข้าข้อมูล</button>
     <input type="file" id="importFile" accept="application/json">
@@ -381,6 +447,8 @@
   </div>
 
 </main>
+
+<div id="printArea"></div>
 
 <footer>
   <div class="icon-row">✦ ⁺ ˚ 🔮 ˚ ⁺ ✦</div>
@@ -624,6 +692,99 @@
     wrap.appendChild(input);
     return wrap;
   }
+
+  function buildPrintArea(){
+    var firstOfMonth = new Date(view.year, view.month, 1);
+    var lastOfMonth = new Date(view.year, view.month + 1, 0);
+    var startOffset = firstOfMonth.getDay();
+    var gridStart = new Date(view.year, view.month, 1 - startOffset);
+    var totalCells = startOffset + lastOfMonth.getDate();
+    var totalWeeks = Math.ceil(totalCells / 7);
+
+    var rowsHtml = "";
+    var weeksHtml = "";
+    var monthGross = 0, monthCountN = 0, monthCountU = 0, monthCountH = 0, monthBonusDays = 0, monthBonusTotal = 0;
+    var weekNo = 1;
+
+    var WD = ["อา.","จ.","อ.","พ.","พฤ.","ศ.","ส."];
+
+    for (var w = 0; w < totalWeeks; w++){
+      var weekGross = 0;
+      var hasDaysInMonth = false;
+
+      for (var d = 0; d < 7; d++){
+        var cellDate = new Date(gridStart);
+        cellDate.setDate(gridStart.getDate() + w*7 + d);
+        var inMonth = cellDate.getMonth() === view.month && cellDate.getFullYear() === view.year;
+        var key = dateKey(cellDate.getFullYear(), cellDate.getMonth(), cellDate.getDate());
+        var entry = getEntry(key);
+        var calc = calcDay(entry);
+        weekGross += calc.total;
+
+        if (inMonth){
+          hasDaysInMonth = true;
+          if (entry.n || entry.u || entry.h){
+            monthGross += calc.total;
+            monthCountN += entry.n; monthCountU += entry.u; monthCountH += entry.h;
+            if (calc.bonus > 0){ monthBonusDays++; monthBonusTotal += calc.bonus; }
+
+            rowsHtml += "<tr>" +
+              "<td>" + cellDate.getDate() + " " + WD[cellDate.getDay()] + "</td>" +
+              "<td>" + entry.n + "</td>" +
+              "<td>" + entry.u + "</td>" +
+              "<td>" + entry.h + "</td>" +
+              "<td>" + (calc.bonus > 0 ? ("+" + calc.bonus) : "-") + "</td>" +
+              "<td><b>" + fmt(calc.total) + "</b></td>" +
+              "</tr>";
+          }
+        }
+      }
+
+      if (hasDaysInMonth){
+        weeksHtml += "<tr><td>สัปดาห์ที่ " + weekNo + "</td><td>" + fmt(weekGross) + "</td><td><b>" + fmt(weekGross * TAX_RATE) + "</b></td></tr>";
+        weekNo++;
+      }
+    }
+
+    if (rowsHtml === ""){
+      rowsHtml = "<tr><td colspan='6' style='text-align:center; color:#9C7350;'>ยังไม่มีข้อมูลในเดือนนี้</td></tr>";
+    }
+
+    var monthTitle = THAI_MONTHS[view.month] + " " + (view.year + 543);
+    var genStamp = new Date().toLocaleDateString('th-TH', { year:'numeric', month:'long', day:'numeric' });
+
+    var html = "";
+    html += "<h1>🔮 สมุดบันทึกรายได้ดูดวง — " + monthTitle + "</h1>";
+    html += "<div class='print-sub'>สร้างเมื่อ " + genStamp + "</div>";
+
+    html += "<h2>รายการรายวัน</h2>";
+    html += "<table><thead><tr><th>วันที่</th><th>ปกติ</th><th>ด่วน</th><th>ร้อนใจ</th><th>โบนัส</th><th>รวม (บาท)</th></tr></thead><tbody>" + rowsHtml + "</tbody></table>";
+
+    html += "<h2>สรุปรายสัปดาห์</h2>";
+    html += "<table><thead><tr><th>สัปดาห์</th><th>ยอดรวม</th><th>หลังหักภาษี 3%</th></tr></thead><tbody>" + weeksHtml + "</tbody></table>";
+
+    html += "<h2>สรุปรายเดือน</h2>";
+    html += "<div class='print-summary'>" +
+      "<div>จำนวนครั้งรวม: <b>" + (monthCountN+monthCountU+monthCountH) + "</b> (ปกติ " + monthCountN + " / ด่วน " + monthCountU + " / ร้อนใจ " + monthCountH + ")</div>" +
+      "<div>วันที่ได้โบนัส: <b>" + monthBonusDays + " วัน</b> (รวมโบนัส " + fmt(monthBonusTotal) + ")</div>" +
+      "<div>รายรับรวม (ก่อนหักภาษี): <b>" + fmt(monthGross) + "</b></div>" +
+      "<div>รายรับสุทธิ (หลังหักภาษี 3%): <b>" + fmt(monthGross * TAX_RATE) + "</b></div>" +
+      "</div>";
+
+    html += "<div class='print-footer'>ปกติ 1 ครั้ง = 10 ฿ · ด่วน 1 ครั้ง = 20 ฿ · ร้อนใจ 1 ครั้ง = 40 ฿ · ทุกๆ 100 ครั้งของช่อง \"ปกติ\" ได้โบนัส +100 ฿ · หักภาษี ณ ที่จ่าย 3% ทุกสัปดาห์</div>";
+
+    document.getElementById("printArea").innerHTML = html;
+  }
+
+  document.getElementById("pdfBtn").addEventListener("click", function(){
+    buildPrintArea();
+    document.body.classList.add("printing-pdf");
+    window.print();
+  });
+
+  window.addEventListener("afterprint", function(){
+    document.body.classList.remove("printing-pdf");
+  });
 
   document.getElementById("prevBtn").addEventListener("click", function(){
     view.month -= 1;
