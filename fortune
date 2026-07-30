@@ -385,7 +385,7 @@
 <footer>
   <div class="icon-row">✦ ⁺ ˚ 🔮 ˚ ⁺ ✦</div>
   <p>
-    ปกติ 1 ครั้ง = 10 ฿ · ด่วน 1 ครั้ง = 20 ฿ · ร้อนใจ 1 ครั้ง = 40 ฿ · หากช่อง "ปกติ" ในวันนั้นครบ 100 ครั้ง จะได้โบนัสอัตโนมัติ +100 ฿<br>
+    ปกติ 1 ครั้ง = 10 ฿ · ด่วน 1 ครั้ง = 20 ฿ · ร้อนใจ 1 ครั้ง = 40 ฿ · ทุกๆ 100 ครั้งของช่อง "ปกติ" ในวันนั้น จะได้โบนัสอัตโนมัติ +100 ฿ (เช่น 200 ครั้ง = โบนัส 200 ฿)<br>
     ยอดรายสัปดาห์ (อา.–ส.) จะถูกหักภาษี ณ ที่จ่าย 3% โดยอัตโนมัติ ก่อนรวมเป็นยอดสุทธิรายเดือน<br>
     ข้อมูลทั้งหมดถูกบันทึกไว้ใน localStorage ของเบราว์เซอร์นี้เท่านั้น กรุณากด "ส่งออกข้อมูล" เป็นประจำเพื่อสำรองไฟล์ไว้กันข้อมูลหาย
   </p>
@@ -439,12 +439,14 @@
 
   function calcDay(entry){
     var base = entry.n*RATE.n + entry.u*RATE.u + entry.h*RATE.h;
-    var bonus = entry.n >= BONUS_THRESHOLD ? BONUS_AMOUNT : 0;
+    var bonusUnits = Math.floor(entry.n / BONUS_THRESHOLD);
+    var bonus = bonusUnits * BONUS_AMOUNT;
     return { base: base, bonus: bonus, total: base + bonus };
   }
 
   function fmt(n){
-    return Math.round(n).toLocaleString('th-TH') + " ฿";
+    var rounded = Math.round(n * 100) / 100; // avoid floating point noise, keep up to 2 decimals
+    return rounded.toLocaleString('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + " ฿";
   }
 
   function isBeforeStart(y, m){
