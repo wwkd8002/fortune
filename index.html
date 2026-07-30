@@ -332,8 +332,16 @@
   /* ---- PDF / print view ---- */
   #printArea{ display: none; }
 
-  body.printing-pdf > *:not(#printArea){ display: none !important; }
-  body.printing-pdf #printArea{ display: block; }
+  body.printing-pdf header,
+body.printing-pdf main,
+body.printing-pdf footer,
+body.printing-pdf .account-bar {
+  display: none !important;
+}
+
+body.printing-pdf #printArea {
+  display: block !important;
+}
   body.printing-pdf{ background: #fff; }
 
   #printArea h1{
