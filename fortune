@@ -500,6 +500,7 @@
 
         var cell = document.createElement("div");
         cell.className = "day-cell" + (inMonth ? " current-month" : " pad") + (calc.bonus > 0 ? " has-bonus" : "") + (key === todayKey ? " today" : "");
+        cell.dataset.key = key;
 
         var dayNum = document.createElement("div");
         dayNum.className = "day-num";
@@ -515,12 +516,11 @@
         totalDiv.textContent = fmt(calc.total);
         cell.appendChild(totalDiv);
 
-        if (calc.bonus > 0){
-          var bonusNote = document.createElement("div");
-          bonusNote.className = "bonus-note";
-          bonusNote.textContent = "🎉 ได้โบนัส +" + calc.bonus + " ฿";
-          cell.appendChild(bonusNote);
-        }
+        var bonusNote = document.createElement("div");
+        bonusNote.className = "bonus-note";
+        bonusNote.textContent = calc.bonus > 0 ? ("🎉 ได้โบนัส +" + calc.bonus + " ฿") : "";
+        if (calc.bonus === 0) bonusNote.style.display = "none";
+        cell.appendChild(bonusNote);
 
         weekRow.appendChild(cell);
       }
@@ -542,6 +542,51 @@
     document.getElementById("sumBonus").textContent = monthBonusDays + " วัน";
   }
 
+  // Lightweight update after a single field edit — avoids rebuilding the whole
+  // calendar (and stealing focus from the input the person is typing in).
+  function updateCellAndSummaries(key){
+    var cell = document.querySelector('.day-cell[data-key="' + key + '"]');
+    if (!cell) return;
+
+    var entry = getEntry(key);
+    var calc = calcDay(entry);
+
+    cell.querySelector(".day-total").textContent = fmt(calc.total);
+    var bonusNote = cell.querySelector(".bonus-note");
+    if (calc.bonus > 0){
+      bonusNote.textContent = "🎉 ได้โบนัส +" + calc.bonus + " ฿";
+      bonusNote.style.display = "";
+      cell.classList.add("has-bonus");
+    } else {
+      bonusNote.textContent = "";
+      bonusNote.style.display = "none";
+      cell.classList.remove("has-bonus");
+    }
+
+    var weekBlock = cell.closest(".week-block");
+    var weekGross = 0;
+    weekBlock.querySelectorAll(".day-cell").forEach(function(c){
+      weekGross += calcDay(getEntry(c.dataset.key)).total;
+    });
+    weekBlock.querySelector(".week-summary").innerHTML =
+      "รวมสัปดาห์: <b>" + fmt(weekGross) + "</b> &nbsp;→&nbsp; หลังหักภาษี 3%: <b class='net'>" + fmt(weekGross * TAX_RATE) + "</b>";
+
+    var monthGross = 0, monthCountN = 0, monthCountU = 0, monthCountH = 0, monthBonusDays = 0;
+    document.querySelectorAll(".day-cell.current-month").forEach(function(c){
+      var e = getEntry(c.dataset.key);
+      var cc = calcDay(e);
+      monthGross += cc.total;
+      monthCountN += e.n; monthCountU += e.u; monthCountH += e.h;
+      if (cc.bonus > 0) monthBonusDays++;
+    });
+
+    document.getElementById("sumGross").textContent = fmt(monthGross);
+    document.getElementById("sumNet").textContent = fmt(monthGross * TAX_RATE);
+    document.getElementById("sumCount").textContent = (monthCountN + monthCountU + monthCountH).toLocaleString('th-TH') +
+      "  (" + monthCountN + " / " + monthCountU + " / " + monthCountH + ")";
+    document.getElementById("sumBonus").textContent = monthBonusDays + " วัน";
+  }
+
   function makeField(labelText, fieldKey, dateKeyStr, value, editable){
     var wrap = document.createElement("div");
     wrap.className = "field";
@@ -551,16 +596,20 @@
     wrap.appendChild(label);
 
     var input = document.createElement("input");
-    input.type = "number";
-    input.min = "0";
-    input.step = "1";
+    input.type = "text";
     input.inputMode = "numeric";
+    input.pattern = "[0-9]*";
+    input.autocomplete = "off";
     input.value = value || "";
     input.placeholder = "0";
     if (!editable) input.disabled = true;
 
     input.addEventListener("input", function(){
-      var v = parseInt(input.value, 10);
+      // strip anything that isn't a digit, keep typing frictionless
+      var digitsOnly = input.value.replace(/[^0-9]/g, "");
+      if (digitsOnly !== input.value) input.value = digitsOnly;
+
+      var v = parseInt(digitsOnly, 10);
       if (isNaN(v) || v < 0) v = 0;
       var entry = data[dateKeyStr];
       if (!entry){
@@ -569,7 +618,7 @@
       }
       entry[fieldKey] = v;
       saveData();
-      render();
+      updateCellAndSummaries(dateKeyStr);
     });
 
     wrap.appendChild(input);
