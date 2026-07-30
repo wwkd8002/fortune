@@ -548,16 +548,8 @@
   <div class="auth-card" id="loginCard" style="display:none">
     <div class="crescent">☾ ⋆ ✧ ⋆ ☽</div>
     <h2 id="loginTitle">เข้าสู่ระบบ 🔮</h2>
-    <p class="hint">เข้าสู่ระบบเพื่อดูข้อมูลชุดเดียวกันทุกอุปกรณ์</p>
+    <p class="hint">ใช้อีเมล/รหัสผ่านเดียวกันในทุกอุปกรณ์ เพื่อดูข้อมูลชุดเดียวกัน</p>
     <div class="auth-error" id="loginError"></div>
-    
-    <button class="auth-btn secondary" id="googleLoginBtn" style="margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
-      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.616z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
-      เข้าสู่ระบบด้วย Google
-    </button>
-
-    <div class="auth-divider">หรือใช้อีเมล / รหัสผ่าน</div>
-
     <div class="auth-field">
       <label>อีเมล</label>
       <input type="email" id="loginEmail" autocomplete="username" placeholder="you@example.com">
@@ -567,7 +559,7 @@
       <input type="password" id="loginPassword" autocomplete="current-password" placeholder="อย่างน้อย 6 ตัวอักษร">
     </div>
     <button class="auth-btn" id="loginBtn">เข้าสู่ระบบ</button>
-    <button class="auth-btn secondary" id="signupBtn" style="margin-top: 8px;">สมัครสมาชิกใหม่</button>
+    <button class="auth-btn secondary" id="signupBtn">สมัครสมาชิกใหม่</button>
     <div class="auth-toggle"><a id="forgotPasswordLink">ลืมรหัสผ่าน?</a></div>
     <div class="auth-divider">อื่นๆ</div>
     <div class="auth-toggle"><a id="editConfigLink">แก้ไขการตั้งค่า Firebase</a></div>
@@ -634,7 +626,7 @@
 
   <div class="calendar-wrap">
     <div class="weekday-row">
-      <div>อา.</div><div>จ.</div><div>อ.</div><div>พ.</div><div>พฤ.</div><div>ศ.</div><div>ส.</div>
+      <div>จ.</div><div>อ.</div><div>พ.</div><div>พฤ.</div><div>ศ.</div><div>ส.</div><div>อา.</div>
     </div>
     <div id="weeksContainer"></div>
   </div>
@@ -647,7 +639,7 @@
   <div class="icon-row">✦ ⁺ ˚ 🔮 ˚ ⁺ ✦</div>
   <p>
     ปกติ 1 ครั้ง = 10 ฿ · ด่วน 1 ครั้ง = 20 ฿ · ร้อนใจ 1 ครั้ง = 40 ฿ · ทุกๆ 100 ครั้งของช่อง "ปกติ" ในวันนั้น จะได้โบนัสอัตโนมัติ +100 ฿ (เช่น 200 ครั้ง = โบนัส 200 ฿)<br>
-    ยอดรายสัปดาห์ (อา.–ส.) จะถูกหักภาษี ณ ที่จ่าย 3% โดยอัตโนมัติ ก่อนรวมเป็นยอดสุทธิรายเดือน<br>
+    ยอดรายสัปดาห์ (จ.–อา.) จะถูกหักภาษี ณ ที่จ่าย 3% โดยอัตโนมัติ ก่อนรวมเป็นยอดสุทธิรายเดือน<br>
     ข้อมูลของคุณซิงค์กับ Firebase อัตโนมัติ เข้าสู่ระบบด้วยบัญชีเดียวกันจากอุปกรณ์ไหนก็เห็นข้อมูลเดียวกัน · กด "ส่งออกข้อมูล" เป็นระยะเพื่อสำรองไฟล์เก็บไว้เพิ่มเติม
   </p>
 </footer>
@@ -658,8 +650,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import {
   getAuth, onAuthStateChanged, signInWithEmailAndPassword,
-  createUserWithEmailAndPassword, signOut, sendPasswordResetEmail,
-  GoogleAuthProvider, signInWithPopup
+  createUserWithEmailAndPassword, signOut, sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
   getFirestore, doc, setDoc, onSnapshot, serverTimestamp,
@@ -710,7 +701,6 @@ import {
     loginError: document.getElementById("loginError"),
     loginBtn: document.getElementById("loginBtn"),
     signupBtn: document.getElementById("signupBtn"),
-    googleLoginBtn: document.getElementById("googleLoginBtn"),
     forgotPasswordLink: document.getElementById("forgotPasswordLink"),
     editConfigLink: document.getElementById("editConfigLink"),
     accountEmail: document.getElementById("accountEmail"),
@@ -740,8 +730,10 @@ import {
 
   function parseConfigInput(raw){
     var txt = raw.trim();
+    // allow pasting "const firebaseConfig = {...};" straight from the console
     var match = txt.match(/\{[\s\S]*\}/);
     if (match) txt = match[0];
+    // make it valid JSON-ish (quote bare keys), then let Function parse it safely as an object literal
     var obj = Function('"use strict"; return (' + txt + ');')();
     if (!obj || !obj.apiKey || !obj.projectId) throw new Error("missing fields");
     return obj;
@@ -756,7 +748,7 @@ import {
     onAuthStateChanged(fbAuth, function(user){
       if (user){
         currentUid = user.uid;
-        el.accountEmail.textContent = user.email || user.displayName || "";
+        el.accountEmail.textContent = user.email || "";
         docRef = doc(fbDb, "users", currentUid, "diary", "data");
         attachListener();
         el.authScreen.style.display = "none";
@@ -807,8 +799,7 @@ import {
       "auth/wrong-password": "รหัสผ่านไม่ถูกต้อง",
       "auth/invalid-credential": "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
       "auth/email-already-in-use": "อีเมลนี้สมัครไว้แล้ว ลองเข้าสู่ระบบแทน",
-      "auth/weak-password": "รหัสผ่านสั้นเกินไป (อย่างน้อย 6 ตัวอักษร)",
-      "auth/popup-closed-by-user": "หน้าต่างล็อกอินถูกปิดก่อนทำรายการเสร็จ"
+      "auth/weak-password": "รหัสผ่านสั้นเกินไป (อย่างน้อย 6 ตัวอักษร)"
     };
     return map[code] || ("เกิดข้อผิดพลาด: " + code);
   }
@@ -844,16 +835,6 @@ import {
   el.signupBtn.addEventListener("click", function(){
     el.loginError.style.display = "none";
     createUserWithEmailAndPassword(fbAuth, el.loginEmail.value.trim(), el.loginPassword.value)
-      .catch(function(err){
-        el.loginError.textContent = friendlyAuthError(err.code);
-        el.loginError.style.display = "block";
-      });
-  });
-
-  var googleProvider = new GoogleAuthProvider();
-  el.googleLoginBtn.addEventListener("click", function(){
-    el.loginError.style.display = "none";
-    signInWithPopup(fbAuth, googleProvider)
       .catch(function(err){
         el.loginError.textContent = friendlyAuthError(err.code);
         el.loginError.style.display = "block";
@@ -905,7 +886,7 @@ import {
   }
 
   function fmt(n){
-    var rounded = Math.round(n * 100) / 100;
+    var rounded = Math.round(n * 100) / 100; // avoid floating point noise, keep up to 2 decimals
     return rounded.toLocaleString('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + " ฿";
   }
 
@@ -922,7 +903,8 @@ import {
 
     var firstOfMonth = new Date(view.year, view.month, 1);
     var lastOfMonth = new Date(view.year, view.month + 1, 0);
-    var startOffset = firstOfMonth.getDay();
+    var dayOfWeek = firstOfMonth.getDay(); // 0 = Sunday, 1 = Monday, ...
+    var startOffset = (dayOfWeek === 0) ? 6 : dayOfWeek - 1; // 0 = Monday, 6 = Sunday
     var gridStart = new Date(view.year, view.month, 1 - startOffset);
 
     var totalCells = startOffset + lastOfMonth.getDate();
@@ -1002,6 +984,8 @@ import {
     document.getElementById("sumBonus").textContent = monthBonusDays + " วัน";
   }
 
+  // Lightweight update after a single field edit — avoids rebuilding the whole
+  // calendar (and stealing focus from the input the person is typing in).
   function updateCellAndSummaries(key){
     var cell = document.querySelector('.day-cell[data-key="' + key + '"]');
     if (!cell) return;
@@ -1063,6 +1047,7 @@ import {
     if (!editable) input.disabled = true;
 
     input.addEventListener("input", function(){
+      // strip anything that isn't a digit, keep typing frictionless
       var digitsOnly = input.value.replace(/[^0-9]/g, "");
       if (digitsOnly !== input.value) input.value = digitsOnly;
 
@@ -1085,7 +1070,8 @@ import {
   function buildPrintArea(){
     var firstOfMonth = new Date(view.year, view.month, 1);
     var lastOfMonth = new Date(view.year, view.month + 1, 0);
-    var startOffset = firstOfMonth.getDay();
+    var dayOfWeek = firstOfMonth.getDay();
+    var startOffset = (dayOfWeek === 0) ? 6 : dayOfWeek - 1;
     var gridStart = new Date(view.year, view.month, 1 - startOffset);
     var totalCells = startOffset + lastOfMonth.getDate();
     var totalWeeks = Math.ceil(totalCells / 7);
