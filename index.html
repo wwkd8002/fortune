@@ -53,31 +53,18 @@
 
   /* Header */
   header{
-    padding: 32px 24px 20px;
+    padding: 14px 24px 8px;
     max-width: 1180px;
     margin: 0 auto;
     text-align: center;
     position: relative;
   }
 
-  .crescent{
-    font-size: 26px;
-    letter-spacing: 10px;
-    opacity: .55;
-    margin-bottom: 4px;
-  }
-
   header h1{
-    font-size: clamp(24px, 4vw, 32px);
+    font-size: clamp(17px, 2.4vw, 20px);
     font-weight: 700;
     color: var(--brown-900);
-    margin: 0 0 6px;
-  }
-
-  header p.sub{
-    margin:0;
-    color: var(--brown-500);
-    font-size: 14px;
+    margin: 0;
   }
 
   /* Month nav */
@@ -86,7 +73,7 @@
     align-items:center;
     justify-content:center;
     gap: 14px;
-    margin: 22px auto 0;
+    margin: 10px auto 0;
   }
 
   .nav-btn{
@@ -136,7 +123,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
     gap: 14px;
-    margin: 28px 0;
+    margin: 16px 0;
   }
 
   .card{
@@ -627,9 +614,7 @@ body.printing-pdf #printArea {
 </div>
 
 <header>
-  <div class="crescent">☾ ⋆ ✧ ⋆ ☽</div>
   <h1>สมุดบันทึกรายได้ดูดวง 🔮</h1>
-  <p class="sub">บันทึกส่วนตัว · ซิงค์ข้อมูลผ่าน Firebase ดูได้ทุกอุปกรณ์</p>
 
   <div class="month-nav">
     <button class="nav-btn" id="prevBtn" aria-label="เดือนก่อนหน้า">‹</button>
