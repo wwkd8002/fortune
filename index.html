@@ -128,7 +128,7 @@
   main{
     max-width: 1180px;
     margin: 0 auto;
-    padding: 0 24px;
+    padding: 14px 24px 0;
   }
 
   /* Summary cards */
@@ -199,8 +199,23 @@
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow);
     padding: 18px;
-    overflow-x: auto;
     border: 1px solid var(--brown-100);
+  }
+
+  .weekday-sticky{
+    position: sticky;
+    top: var(--sticky-offset, 0px);
+    z-index: 90;
+    background: var(--card);
+  }
+
+  .weekday-clip{
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .calendar-scroll{
+    overflow-x: auto;
   }
 
   .weekday-row, .week-row{
@@ -211,7 +226,7 @@
   }
 
   .weekday-row{
-    margin-bottom: 10px;
+    will-change: transform;
   }
 
   .weekday-row div{
@@ -326,7 +341,26 @@
   @media (max-width: 640px){
     header{ padding: 24px 16px 12px; }
     main{ padding: 0 16px; }
+    .sticky-inner{ padding: 0 16px; }
     .month-label{ min-width: 150px; font-size: 17px; }
+  }
+
+  /* ---- Sticky top section (account bar + header + summary + toolbar) ---- */
+  .sticky-top{
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 8% 8%, rgba(181,101,29,0.06) 0, transparent 40%),
+      radial-gradient(circle at 95% 15%, rgba(181,101,29,0.05) 0, transparent 35%);
+    box-shadow: 0 4px 10px rgba(74, 52, 39, 0.06);
+  }
+
+  .sticky-inner{
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 24px;
   }
 
   /* ---- PDF / print view ---- */
@@ -584,6 +618,8 @@ body.printing-pdf #printArea {
 <!-- ===== Main app (shown only after login) ===== -->
 <div id="appScreen" style="display:none">
 
+<div class="sticky-top" id="stickyTop">
+
 <div class="account-bar">
   <div class="sync-status" id="syncStatus"><span class="sync-dot"></span><span id="syncStatusText">ซิงค์แล้ว</span></div>
   <span id="accountEmail"></span>
@@ -603,7 +639,7 @@ body.printing-pdf #printArea {
   <button class="today-btn" id="todayBtn">ไปเดือนปัจจุบัน</button>
 </header>
 
-<main>
+<div class="sticky-inner">
 
   <div class="summary-grid">
     <div class="card accent">
@@ -632,11 +668,23 @@ body.printing-pdf #printArea {
     <button class="btn danger" id="clearBtn">ล้างข้อมูลทั้งหมด</button>
   </div>
 
+</div><!-- /.sticky-inner -->
+
+</div><!-- /.sticky-top -->
+
+<main>
+
   <div class="calendar-wrap">
-    <div class="weekday-row">
-      <div>จ.</div><div>อ.</div><div>พ.</div><div>พฤ.</div><div>ศ.</div><div>ส.</div><div>อา.</div>
+    <div class="weekday-sticky" id="weekdaySticky">
+      <div class="weekday-clip">
+        <div class="weekday-row" id="weekdayRow">
+          <div>จ.</div><div>อ.</div><div>พ.</div><div>พฤ.</div><div>ศ.</div><div>ส.</div><div>อา.</div>
+        </div>
+      </div>
     </div>
-    <div id="weeksContainer"></div>
+    <div class="calendar-scroll" id="calendarScroll">
+      <div id="weeksContainer"></div>
+    </div>
   </div>
 
 </main>
@@ -761,6 +809,7 @@ import {
         attachListener();
         el.authScreen.style.display = "none";
         el.appScreen.style.display = "block";
+        if (window.refreshStickyHeaderOffset) setTimeout(window.refreshStickyHeaderOffset, 0);
       } else {
         currentUid = null;
         docRef = null;
@@ -1242,6 +1291,32 @@ import {
       }
     }
   });
+
+  // ---- Sticky weekday header: keep it pinned right under the sticky top bar,
+  // and keep it horizontally in sync with the scrollable calendar body ----
+  (function setupStickyWeekdayHeader(){
+    const stickyTopEl = document.getElementById("stickyTop");
+    const calendarScroll = document.getElementById("calendarScroll");
+    const weekdayRow = document.getElementById("weekdayRow");
+    if (!stickyTopEl || !calendarScroll || !weekdayRow) return;
+
+    function updateOffset(){
+      document.documentElement.style.setProperty(
+        "--sticky-offset",
+        stickyTopEl.offsetHeight + "px"
+      );
+    }
+    window.refreshStickyHeaderOffset = updateOffset;
+    updateOffset();
+    window.addEventListener("resize", updateOffset);
+    if (window.ResizeObserver){
+      new ResizeObserver(updateOffset).observe(stickyTopEl);
+    }
+
+    calendarScroll.addEventListener("scroll", function(){
+      weekdayRow.style.transform = "translateX(" + (-calendarScroll.scrollLeft) + "px)";
+    });
+  })();
 
 })();
 </script>
