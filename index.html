@@ -492,6 +492,15 @@ body.printing-pdf #printArea {
     transition: background .15s ease;
   }
   .auth-btn:hover{ background: var(--accent-dark); }
+  .auth-btn#googleLoginBtn{
+    background: #fff;
+    color: var(--brown-800);
+    border: 1.5px solid var(--brown-300);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .auth-btn#googleLoginBtn:hover{ background: var(--brown-100); }
   .auth-btn.secondary{
     background: transparent;
     color: var(--accent-dark);
@@ -552,33 +561,16 @@ body.printing-pdf #printArea {
 <!-- ===== STEP 1: Firebase project setup (one-time, per browser) ===== -->
 <div class="auth-screen" id="authScreen">
 
-  <div class="auth-card" id="setupCard" style="display:none">
-    <div class="crescent">☾ ⋆ ✧ ⋆ ☽</div>
-    <h2>เชื่อมต่อ Firebase 🔮</h2>
-    <p class="hint">
-      วางค่า Firebase config ของโปรเจกต์คุณที่นี่ (ดูได้จาก Firebase Console → Project settings → SDK setup and configuration)<br>
-      ต้องทำแค่ครั้งเดียวต่อเบราว์เซอร์/อุปกรณ์
-    </p>
-    <div class="auth-error" id="setupError"></div>
-    <div class="auth-field">
-      <label>วาง firebaseConfig ทั้งก้อน (นำมาจาก Firebase Console)</label>
-      <textarea id="configPaste" placeholder='{
-  "apiKey": "...",
-  "authDomain": "...",
-  "projectId": "...",
-  "storageBucket": "...",
-  "messagingSenderId": "...",
-  "appId": "..."
-}'></textarea>
-    </div>
-    <button class="auth-btn" id="saveConfigBtn">บันทึกและเชื่อมต่อ</button>
-  </div>
-
   <div class="auth-card" id="loginCard" style="display:none">
     <div class="crescent">☾ ⋆ ✧ ⋆ ☽</div>
     <h2 id="loginTitle">เข้าสู่ระบบ 🔮</h2>
-    <p class="hint">ใช้อีเมล/รหัสผ่านเดียวกันในทุกอุปกรณ์ เพื่อดูข้อมูลชุดเดียวกัน</p>
+    <p class="hint">เข้าสู่ระบบด้วยบัญชีเดียวกันจากอุปกรณ์ไหนก็เห็นข้อมูลเดียวกัน</p>
     <div class="auth-error" id="loginError"></div>
+    <button class="auth-btn" id="googleLoginBtn">
+      <svg width="18" height="18" viewBox="0 0 18 18" style="vertical-align:-3px; margin-right:8px;"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.81.54-1.85.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.97 10.72A5.4 5.4 0 0 1 3.68 9c0-.6.1-1.18.29-1.72V4.95H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.05l3.01-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/></svg>
+      เข้าสู่ระบบด้วย Google
+    </button>
+    <div class="auth-divider">หรือ</div>
     <div class="auth-field">
       <label>อีเมล</label>
       <input type="email" id="loginEmail" autocomplete="username" placeholder="you@example.com">
@@ -587,11 +579,9 @@ body.printing-pdf #printArea {
       <label>รหัสผ่าน</label>
       <input type="password" id="loginPassword" autocomplete="current-password" placeholder="อย่างน้อย 6 ตัวอักษร">
     </div>
-    <button class="auth-btn" id="loginBtn">เข้าสู่ระบบ</button>
-    <button class="auth-btn secondary" id="signupBtn">สมัครสมาชิกใหม่</button>
+    <button class="auth-btn secondary" id="loginBtn">เข้าสู่ระบบด้วยอีเมล</button>
+    <button class="auth-btn secondary" id="signupBtn">สมัครสมาชิกใหม่ (อีเมล)</button>
     <div class="auth-toggle"><a id="forgotPasswordLink">ลืมรหัสผ่าน?</a></div>
-    <div class="auth-divider">อื่นๆ</div>
-    <div class="auth-toggle"><a id="editConfigLink">แก้ไขการตั้งค่า Firebase</a></div>
   </div>
 
   <div class="auth-card" id="loadingCard">
@@ -691,7 +681,8 @@ body.printing-pdf #printArea {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import {
   getAuth, onAuthStateChanged, signInWithEmailAndPassword,
-  createUserWithEmailAndPassword, signOut, sendPasswordResetEmail
+  createUserWithEmailAndPassword, signOut, sendPasswordResetEmail,
+  GoogleAuthProvider, signInWithPopup
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
   getFirestore, doc, setDoc, onSnapshot, serverTimestamp,
@@ -701,7 +692,15 @@ import {
 (function(){
   "use strict";
 
-  var CONFIG_KEY = "duangDiaryFirebaseConfig_v1";
+  var FIREBASE_CONFIG = {
+    apiKey: "AIzaSyBwdCCVs6Y4XN-dUpFeIDg0fDyoJj4DnAQ",
+    authDomain: "fortuneincome.firebaseapp.com",
+    projectId: "fortuneincome",
+    storageBucket: "fortuneincome.firebasestorage.app",
+    messagingSenderId: "1044747905951",
+    appId: "1:1044747905951:web:fd8976a74dc3bda555ebaa",
+    measurementId: "G-1MD2W65HBW"
+  };
   var START_YEAR = 2026, START_MONTH = 7; // August 2026 (0-indexed)
 
   var RATE = { n: 10, u: 20, h: 40 };
@@ -729,21 +728,17 @@ import {
 
   var el = {
     authScreen: document.getElementById("authScreen"),
-    setupCard: document.getElementById("setupCard"),
     loginCard: document.getElementById("loginCard"),
     loadingCard: document.getElementById("loadingCard"),
     loadingText: document.getElementById("loadingText"),
     appScreen: document.getElementById("appScreen"),
-    configPaste: document.getElementById("configPaste"),
-    setupError: document.getElementById("setupError"),
-    saveConfigBtn: document.getElementById("saveConfigBtn"),
     loginEmail: document.getElementById("loginEmail"),
     loginPassword: document.getElementById("loginPassword"),
     loginError: document.getElementById("loginError"),
     loginBtn: document.getElementById("loginBtn"),
     signupBtn: document.getElementById("signupBtn"),
+    googleLoginBtn: document.getElementById("googleLoginBtn"),
     forgotPasswordLink: document.getElementById("forgotPasswordLink"),
-    editConfigLink: document.getElementById("editConfigLink"),
     accountEmail: document.getElementById("accountEmail"),
     logoutBtn: document.getElementById("logoutBtn"),
     syncStatus: document.getElementById("syncStatus"),
@@ -751,33 +746,13 @@ import {
   };
 
   function showCard(name){
-    el.setupCard.style.display = name === "setup" ? "block" : "none";
     el.loginCard.style.display = name === "login" ? "block" : "none";
     el.loadingCard.style.display = name === "loading" ? "block" : "none";
   }
 
-  function loadFirebaseConfig(){
-    try{
-      var raw = localStorage.getItem(CONFIG_KEY);
-      return raw ? JSON.parse(raw) : null;
-    }catch(e){ return null; }
-  }
-  function saveFirebaseConfig(cfg){ localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg)); }
-
   function setSyncStatus(state, text){
     el.syncStatus.className = "sync-status " + state;
     el.syncStatusText.textContent = text;
-  }
-
-  function parseConfigInput(raw){
-    var txt = raw.trim();
-    // allow pasting "const firebaseConfig = {...};" straight from the console
-    var match = txt.match(/\{[\s\S]*\}/);
-    if (match) txt = match[0];
-    // make it valid JSON-ish (quote bare keys), then let Function parse it safely as an object literal
-    var obj = Function('"use strict"; return (' + txt + ');')();
-    if (!obj || !obj.apiKey || !obj.projectId) throw new Error("missing fields");
-    return obj;
   }
 
   function initFirebase(cfg){
@@ -846,23 +821,14 @@ import {
     return map[code] || ("เกิดข้อผิดพลาด: " + code);
   }
 
-  el.saveConfigBtn.addEventListener("click", function(){
-    el.setupError.style.display = "none";
-    try{
-      var cfg = parseConfigInput(el.configPaste.value);
-      saveFirebaseConfig(cfg);
-      showCard("loading");
-      initFirebase(cfg);
-    }catch(e){
-      el.setupError.textContent = "อ่านค่า config ไม่ได้ กรุณาตรวจสอบว่าวางถูกต้องครบถ้วน";
-      el.setupError.style.display = "block";
-    }
-  });
-
-  el.editConfigLink.addEventListener("click", function(){
-    var cfg = loadFirebaseConfig();
-    if (cfg) el.configPaste.value = JSON.stringify(cfg, null, 2);
-    showCard("setup");
+  el.googleLoginBtn.addEventListener("click", function(){
+    el.loginError.style.display = "none";
+    var provider = new GoogleAuthProvider();
+    signInWithPopup(fbAuth, provider)
+      .catch(function(err){
+        el.loginError.textContent = friendlyAuthError(err.code);
+        el.loginError.style.display = "block";
+      });
   });
 
   el.loginBtn.addEventListener("click", function(){
@@ -895,19 +861,10 @@ import {
     signOut(fbAuth);
   });
 
-  // Boot: do we already have a saved Firebase config?
+  // Boot: connect straight to Firebase, no setup screen needed
   (function boot(){
-    var cfg = loadFirebaseConfig();
-    if (cfg){
-      showCard("loading");
-      try{
-        initFirebase(cfg);
-      }catch(e){
-        showCard("setup");
-      }
-    } else {
-      showCard("setup");
-    }
+    showCard("loading");
+    initFirebase(FIREBASE_CONFIG);
   })();
 
   function pad2(x){ return x < 10 ? "0"+x : ""+x; }
