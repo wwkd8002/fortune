@@ -947,6 +947,21 @@ import {
     return (y < START_YEAR) || (y === START_YEAR && m < START_MONTH);
   }
 
+  // ---- Hidden weeks state (kept in memory; saved to localStorage when possible) ----
+  var HIDDEN_WEEKS_KEY = "hiddenWeeks_v2";
+  var hiddenWeeksStore = null;
+  function getHiddenWeeks(){
+    if (hiddenWeeksStore === null){
+      try { hiddenWeeksStore = JSON.parse(localStorage.getItem(HIDDEN_WEEKS_KEY) || "{}") || {}; }
+      catch(e){ hiddenWeeksStore = {}; }
+    }
+    return hiddenWeeksStore;
+  }
+  function setHiddenWeeks(o){
+    hiddenWeeksStore = o;
+    try { localStorage.setItem(HIDDEN_WEEKS_KEY, JSON.stringify(o)); } catch(e){}
+  }
+
   function render(){
     document.getElementById("monthLabel").textContent = THAI_MONTHS[view.month] + " " + (view.year + 543);
 
@@ -966,14 +981,7 @@ import {
     var container = document.getElementById("weeksContainer");
     container.innerHTML = "";
 
-    var HIDDEN_KEY = "hiddenWeeks";
-    function loadHiddenWeeks(){
-      try { return JSON.parse(localStorage.getItem(HIDDEN_KEY) || "{}") || {}; } catch(e){ return {}; }
-    }
-    function saveHiddenWeeks(o){
-      try { localStorage.setItem(HIDDEN_KEY, JSON.stringify(o)); } catch(e){}
-    }
-    var hiddenWeeks = loadHiddenWeeks();
+    var hiddenWeeks = getHiddenWeeks();
 
     var monthGross = 0, monthCountN = 0, monthCountU = 0, monthCountH = 0, monthBonusDays = 0;
     var todayKey = dateKey(now.getFullYear(), now.getMonth(), now.getDate());
@@ -1001,10 +1009,8 @@ import {
           btn.textContent = (hid ? "▸ แสดงสัปดาห์ " : "▾ ซ่อนสัปดาห์ ") + range;
         }
         btn.addEventListener("click", function(){
-          var h = loadHiddenWeeks();
-          if (h[id]) delete h[id]; else h[id] = 1;
-          hiddenWeeks = h;
-          saveHiddenWeeks(h);
+          if (hiddenWeeks[id]) delete hiddenWeeks[id]; else hiddenWeeks[id] = 1;
+          setHiddenWeeks(hiddenWeeks);
           apply();
         });
         apply();
