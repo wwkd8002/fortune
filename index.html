@@ -994,20 +994,21 @@ import {
       toggleBtn.type = "button";
       toggleBtn.className = "week-toggle";
       var rangeText = weekStart.getDate() + (weekStart.getMonth() !== weekEnd.getMonth() ? " " + THAI_MONTHS[weekStart.getMonth()] : "") + " – " + weekEnd.getDate() + " " + THAI_MONTHS[weekEnd.getMonth()];
-      function applyWeekState(){
-        var hid = !!hiddenWeeks[weekId];
-        weekBlock.classList.toggle("week-hidden", hid);
-        toggleBtn.textContent = (hid ? "▸ แสดงสัปดาห์ " : "▾ ซ่อนสัปดาห์ ") + rangeText;
-      }
-      toggleBtn.addEventListener("click", (function(id, apply){
-        return function(){
+      (function(block, btn, id, range){
+        function apply(){
+          var hid = !!hiddenWeeks[id];
+          if (hid) block.classList.add("week-hidden"); else block.classList.remove("week-hidden");
+          btn.textContent = (hid ? "▸ แสดงสัปดาห์ " : "▾ ซ่อนสัปดาห์ ") + range;
+        }
+        btn.addEventListener("click", function(){
           var h = loadHiddenWeeks();
           if (h[id]) delete h[id]; else h[id] = 1;
           hiddenWeeks = h;
           saveHiddenWeeks(h);
           apply();
-        };
-      })(weekId, applyWeekState));
+        });
+        apply();
+      })(weekBlock, toggleBtn, weekId, rangeText);
       toggleBar.appendChild(toggleBtn);
       weekBlock.appendChild(toggleBar);
 
@@ -1065,7 +1066,6 @@ import {
       weekSummary.innerHTML = "รวมสัปดาห์: <b>" + fmt(weekGross) + "</b> &nbsp;→&nbsp; หลังหักภาษี 3%: <b class='net'>" + fmt(weekGross * TAX_RATE) + "</b>";
       weekBlock.appendChild(weekSummary);
 
-      applyWeekState();
       container.appendChild(weekBlock);
     }
 
